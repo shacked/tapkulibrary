@@ -79,8 +79,10 @@ typedef struct TKDateInformation TKDateInformation;
 - (NSDate *) dateByAddingDays:(NSUInteger)days;
 + (NSDate *) dateWithDatePart:(NSDate *)aDate andTimePart:(NSDate *)aTime;
 
+- (NSString*) dayString;
 - (NSString *) monthString;
 - (NSString *) yearString;
+- (NSString*) dayKeyString;
 
 
 - (TKDateInformation) dateInformation;

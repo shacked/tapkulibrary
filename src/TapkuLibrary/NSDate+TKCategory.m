@@ -120,7 +120,11 @@
 }
 
 
-
+- (NSString*) dayString{
+	NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];	
+	[dateFormatter setDateFormat:@"dd"];
+	return [dateFormatter stringFromDate:self];
+}
 - (NSString*) monthString{
 	NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];	
 	[dateFormatter setDateFormat:@"MMMM"];
@@ -131,6 +135,12 @@
 	[dateFormatter setDateFormat:@"yyyy"];
 	return [dateFormatter stringFromDate:self];
 }
+- (NSString*) dayKeyString{
+	NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];	
+	[dateFormatter setDateFormat:@"yyyyMMddZ"];
+	return [dateFormatter stringFromDate:self];
+}
+
 
 
 
