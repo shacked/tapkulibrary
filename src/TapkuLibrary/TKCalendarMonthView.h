@@ -37,17 +37,7 @@
 @protocol TKCalendarMonthViewDelegate, TKCalendarMonthViewDataSource;
 
 /** `TKCalendarMonthView` imitates the month grid in the Calendar app on iPhone. */
-@interface TKCalendarMonthView : UIView {
-
-	TKCalendarMonthTiles *currentTile,*oldTile;
-	UIButton *leftArrow, *rightArrow;
-	UIImageView *topBackground, *shadow;
-	UILabel *monthYear;
-	UIScrollView *tileBox;
-	BOOL sunday;
-
-}
-
+@interface TKCalendarMonthView : UIView {}
 
 /** Initialize a Calendar Month Grid.
  @param sunday Flag to setup the grid with Monday or Sunday as the leftmost day.
@@ -62,23 +52,35 @@
 @property (nonatomic,assign) id <TKCalendarMonthViewDataSource> dataSource;
 
 /** Determines whether a dot or a count is used to represent events on a given day **/
-@property (nonatomic) BOOL useCounts;
+@property (nonatomic) BOOL showCounts;
 
-/** The current date highlighted on the month grid.
- @return An `NSDate` object set to the month, year and day of the current selection.
- */
-- (NSDate*) dateSelected;
-
-
-/** The current month date being displayed. 
- @return An `NSDate` object set to the month and year of the current month grid.
- */
-- (NSDate*) monthDate;
+/** Whether only a single date or a date range can be selected */
+@property (nonatomic) BOOL allowsRangeSelection;
 
 /** Selects a specific date in the month grid. 
  @param date The date that will be highlighed.
  */
 - (void) selectDate:(NSDate*)date;
+
+/** Selects a specific dates in the month grid. 
+ @param date The date that will be highlighed.
+ */
+- (void) selectFromDate:(NSDate*)fromDate toDate:(NSDate*)toDate;
+
+/** The current date highlighted on the month grid. Kept for legacy purposes
+ @return An `NSDate` object set to the month, year and day of the current selection.
+ */
+- (NSDate*) dateSelected;
+
+/** The current date range highlighted on the month grid.
+ @return An `NSDate` object set to the month, year and day of the current selection.
+ */
+- (NSArray*) dateRangeSelected;
+
+/** The current month date being displayed. 
+ @return An `NSDate` object set to the month and year of the current month grid.
+ */
+- (NSDate*) monthDate;
 
 /** Reloads the current month grid. */
 - (void) reload;

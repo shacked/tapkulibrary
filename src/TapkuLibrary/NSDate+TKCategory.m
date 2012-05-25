@@ -57,12 +57,23 @@
 	int weekday = [comps weekday];
 	return weekday;
 }
+
 - (NSDate*) timelessDate {
 	NSDate *day = self;
 	NSCalendar *gregorian = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
 	NSDateComponents *comp = [gregorian components:(NSYearCalendarUnit | NSMonthCalendarUnit | NSDayCalendarUnit) fromDate:day];
 	return [gregorian dateFromComponents:comp];
 }
+
+- (NSDate*) timelessDateGMT {
+	TKDateInformation info = [self dateInformation];
+	info.hour = 0;
+	info.minute = 0;
+	info.second = 0;
+	
+	return [NSDate dateFromDateInformation:info timeZone:[NSTimeZone timeZoneWithName:@"GMT"]];
+}
+
 - (NSDate*) monthlessDate {
 	NSDate *day = self;
 	NSCalendar *gregorian = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
@@ -73,12 +84,39 @@
 
 
 - (BOOL) isSameDay:(NSDate*)anotherDate{
-	NSCalendar* calendar = [NSCalendar currentCalendar];
-	NSDateComponents* components1 = [calendar components:(NSYearCalendarUnit | NSMonthCalendarUnit | NSDayCalendarUnit) fromDate:self];
-	NSDateComponents* components2 = [calendar components:(NSYearCalendarUnit | NSMonthCalendarUnit | NSDayCalendarUnit) fromDate:anotherDate];
-	return ([components1 year] == [components2 year] && [components1 month] == [components2 month] && [components1 day] == [components2 day]);
+	TKDateInformation info1 = [self dateInformationWithTimeZone:[NSTimeZone timeZoneWithName:@"GMT"]];
+	TKDateInformation info2 = [anotherDate dateInformationWithTimeZone:[NSTimeZone timeZoneWithName:@"GMT"]];
+	return (info1.year == info2.year && info1.month == info2.month && info1.day == info2.day);
 } 
 
+- (BOOL) isSameMonth:(NSDate*)anotherDate{
+	TKDateInformation info1 = [self dateInformationWithTimeZone:[NSTimeZone timeZoneWithName:@"GMT"]];
+	TKDateInformation info2 = [anotherDate dateInformationWithTimeZone:[NSTimeZone timeZoneWithName:@"GMT"]];
+	return (info1.year == info2.year && info1.month == info2.month);
+} 
+
+- (BOOL) isBetweenFromDate:(NSDate*)fromDate toDate:(NSDate*)toDate{
+	if (fromDate == nil || toDate == nil) return NO;
+
+	// TODO: Fix
+//	TKDateInformation fromInfo = [fromDate dateInformation];
+//	TKDateInformation toInfo = [[toDate dateByAddingDays:1] dateInformation];
+//	
+//	fromInfo.hour = 0;
+//	fromInfo.minute = 0;
+//	fromInfo.second = 0;
+//	toInfo.hour = 0;
+//	toInfo.minute = 0;
+//	toInfo.second = 0;
+//	
+//	NSDate *start = [NSDate dateFromDateInformation:fromInfo];
+//	NSDate *end = [[NSDate dateFromDateInformation:toInfo] dateByAddingTimeInterval:-1];
+	
+	return ([self isEqualToDate:fromDate] || [self isEqualToDate:toDate] ||
+			([self laterDate:fromDate] == self && [self earlierDate:toDate] == self));
+}
+
+/* This implementation fails */
 - (int) monthsBetweenDate:(NSDate *)toDate{
     NSCalendar *gregorian = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
     
@@ -106,6 +144,7 @@
 	c.day = days;
 	return [[NSCalendar currentCalendar] dateByAddingComponents:c toDate:self options:0];
 }
+
 + (NSDate *) dateWithDatePart:(NSDate *)aDate andTimePart:(NSDate *)aTime {
 	NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
 	[dateFormatter setDateFormat:@"dd/MM/yyyy"];

@@ -64,9 +64,17 @@ typedef struct TKDateInformation TKDateInformation;
  */
 - (NSDate *) monthDate;
 
+/** Creates and returns a new date with no time component
+ @return A `NSDate` object set to the same month as the date object. The day will be the first of the month.
+ */
+- (NSDate*) timelessDate;
+
+- (NSDate*) timelessDateGMT;
 
 
 - (BOOL) isSameDay:(NSDate*)anotherDate;
+- (BOOL) isSameMonth:(NSDate*)anotherDate;
+- (BOOL) isBetweenFromDate:(NSDate*)fromDate toDate:(NSDate*)toDate;
 - (int) monthsBetweenDate:(NSDate *)toDate;
 - (NSInteger) daysBetweenDate:(NSDate*)date;
 
