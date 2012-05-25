@@ -57,6 +57,9 @@
 /** Whether only a single date or a date range can be selected */
 @property (nonatomic) BOOL allowsRangeSelection;
 
+/** Base color for the selections */
+@property (nonatomic,strong) UIColor *highlightColor;
+
 /** Selects a specific date in the month grid. 
  @param date The date that will be highlighed.
  */
@@ -96,6 +99,13 @@
  @param date The highlighted date.
  */ 
 - (void) calendarMonthView:(TKCalendarMonthView*)monthView didSelectDate:(NSDate*)date;
+
+/** The highlighed date range changed.
+ @param monthView The calendar month view.
+ @param fromDate The highlighted start date.
+ @param toDate The highlighted end date.
+ */ 
+- (void) calendarMonthView:(TKCalendarMonthView*)monthView didSelectFromDate:(NSDate*)fromDate toDate:(NSDate*)toDate;
 
 
 /** The calendar should change the current month to grid shown.

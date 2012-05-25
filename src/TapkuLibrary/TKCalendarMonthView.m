@@ -179,6 +179,8 @@
 	UIImageView *selectedImageView;
 	BOOL startOnSunday;
 	NSDate *lastDateTouched;
+	
+	CGMutablePathRef innerShadowPath;
 }
 
 @synthesize countFont, dotFont, dateFont, monthView, monthDate, dates;
@@ -332,6 +334,8 @@
 
 - (void) drawRect:(CGRect)rect {
 	
+	innerShadowPath = CGPathCreateMutable();
+	
 	/* Note: Tiled image gets drawn flipped */
 	CGContextRef context = UIGraphicsGetCurrentContext();
 	UIImage *tile = [UIImage imageWithContentsOfFile:TKBUNDLE(@"TapkuLibrary.bundle/Images/calendar/Month Calendar Date Tile.png")];
@@ -360,6 +364,32 @@
 		i++;
 		index++;
 	}
+	
+	/* Draw the inner shadow on the selected polygon */
+	if (!CGPathIsEmpty(innerShadowPath)) {
+		CGContextRef context = UIGraphicsGetCurrentContext();
+		
+		// Help determining where the shadow is falling
+//		UIColor *aColor = [UIColor whiteColor];
+//		[aColor setFill];
+//		CGContextAddPath(context, innerShadowPath);
+//		CGContextFillPath(context);
+		
+		/* Technique outlined here http://stackoverflow.com/questions/4431292/inner-shadow-effect-on-uiview-layer */
+		CGMutablePathRef path = CGPathCreateMutable();
+		CGPathAddRect(path, NULL, CGRectInset(CGPathGetPathBoundingBox(innerShadowPath), -2, -2));
+		CGPathAddPath(path, NULL, innerShadowPath);
+		CGPathCloseSubpath(path);
+		CGContextAddPath(context, innerShadowPath); 
+		CGContextClip(context);         
+		CGContextSaveGState(context);
+		CGContextSetShadowWithColor(context, CGSizeMake(0.0f, 0.0f), 4.0f, [UIColor blackColor].CGColor);   
+		CGContextSaveGState(context);   
+		CGContextAddPath(context, path);
+		CGContextEOFillPath(context);
+		CGPathRelease(path);    
+	}
+	CGPathRelease(innerShadowPath);
 }
 
 - (void) drawTileForIndex:(NSUInteger)index day:(NSUInteger)day currentMonth:(BOOL)monthFlag{
@@ -378,9 +408,6 @@
 		CGRect rect2 = rect;
 		rect2.origin.y -= 7;
 		
-		
-		UIColor *color = [UIColor orangeColor];
-		
 		/* Check if this is an end point of the selection */
 		if ([date isSameDay:startDate] || [date isSameDay:endDate]) {
 			endpoint = YES;
@@ -391,22 +418,50 @@
 			
 			/* Draw the gradient */
 			CGRect innerRect = CGRectInset(rect2, 1, 1);
-			[self drawGradientInRect:innerRect withTintColor:color];
-
+			[self drawGradientInRect:innerRect withTintColor:self.monthView.highlightColor];
+				  
 			/* Draw the header inner white shadow */
 			[[UIColor colorWithWhite:1.0f alpha:0.9f] set];
-			CGRect innerShadowRect = CGRectMake(innerRect.origin.x, innerRect.origin.y, innerRect.size.width, 1.0);
-			UIRectFill(innerShadowRect);
+			CGRect headerShadowRect = CGRectMake(innerRect.origin.x, innerRect.origin.y, innerRect.size.width, 1.0);
+			UIRectFill(headerShadowRect);
+			
+			/* Draw left handle if startDate */
+			if ([date isSameDay:startDate]) {
+				[[UIImage imageWithContentsOfFile:TKBUNDLE(@"TapkuLibrary.bundle/Images/calendar/Month-Calendar-Endpoint-Handle-Left.png")] drawInRect:innerRect];
+			}
+			
+			/* Draw right handle if endDate */
+			if ([date isSameDay:endDate]) {
+				[[UIImage imageWithContentsOfFile:TKBUNDLE(@"TapkuLibrary.bundle/Images/calendar/Month-Calendar-Endpoint-Handle-Right.png")] drawInRect:innerRect];
+			}
 		}
 		else {
-			[[UIColor orangeColor] set];
-			UIRectFill(CGRectInset(rect2, 1, 1));
+			
+			rect2.origin.y += 1;
+			rect2.size.height -= 1;
+			rect2.size.width -= 1;
+			
+			CGRect fillRect = CGRectInset(rect2, 1, 1);
+			fillRect.origin.y -= 1;
+			fillRect.size.height += 1;
+			fillRect.size.width += 1;
+			[self.monthView.highlightColor set];
+			UIRectFill(fillRect);
+			
+			/* Add this to the inner shadow path for later */
+			CGPathAddRect(innerShadowPath, NULL, rect2);
 		}
 	}
 	else if (isToday) {
 		CGRect rect2 = rect;
-		rect2.origin.y -= 7;
-		[[UIImage imageWithContentsOfFile:TKBUNDLE(@"TapkuLibrary.bundle/Images/calendar/Month Calendar Today Tile.png")] drawInRect:rect2];
+		rect2.origin.x += 1;
+		rect2.origin.y -= 6;
+		rect2.size.width -= 2;
+		rect2.size.height -= 2;
+		
+		UIColor *todayColor = [UIColor colorWithRed:115.0f/255.0f green:137.0f/255.0f blue:165.0f/255.0f alpha:1.0f];
+		[todayColor set];
+		UIRectFill(rect2);
 	}
 
 	UIColor *fontColor = [UIColor colorWithRed:59/255. green:73/255. blue:88/255. alpha:1];
@@ -599,7 +654,7 @@
 	NSInteger endpoint; // -1 = left, 0 = none, 1 = right
 }
 
-@synthesize delegate,dataSource,startDateSelected,endDateSelected,showCounts;
+@synthesize delegate,dataSource,startDateSelected,endDateSelected,showCounts,allowsRangeSelection,highlightColor;
 
 - (id) init{
 	self = [self initWithSundayAsFirst:YES];
@@ -610,6 +665,8 @@
 	if (!(self = [super initWithFrame:CGRectZero])) return nil;
 	self.backgroundColor = [UIColor grayColor];
 	self.showCounts = NO;
+	self.allowsRangeSelection = NO;
+	self.highlightColor = [UIColor colorWithRed:0 green:114.0f/255.0f blue:226.0f/255.0f alpha:1.0f];
 	self.startDateSelected = nil;
 	self.endDateSelected = nil;
 

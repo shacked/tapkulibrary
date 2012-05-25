@@ -139,7 +139,7 @@
 
 
 
-- (NSDate *) dateByAddingDays:(NSUInteger)days {
+- (NSDate *) dateByAddingDays:(NSInteger)days {
 	NSDateComponents *c = [[NSDateComponents alloc] init];
 	c.day = days;
 	return [[NSCalendar currentCalendar] dateByAddingComponents:c toDate:self options:0];
