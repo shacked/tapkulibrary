@@ -334,7 +334,9 @@
 
 - (void) drawRect:(CGRect)rect {
 	
-	innerShadowPath = CGPathCreateMutable();
+	if (self.monthView.allowsRangeSelection) {
+		innerShadowPath = CGPathCreateMutable();
+	}
 	
 	/* Note: Tiled image gets drawn flipped */
 	CGContextRef context = UIGraphicsGetCurrentContext();
@@ -366,30 +368,32 @@
 	}
 	
 	/* Draw the inner shadow on the selected polygon */
-	if (!CGPathIsEmpty(innerShadowPath)) {
-		CGContextRef context = UIGraphicsGetCurrentContext();
-		
-		// Help determining where the shadow is falling
-//		UIColor *aColor = [UIColor whiteColor];
-//		[aColor setFill];
-//		CGContextAddPath(context, innerShadowPath);
-//		CGContextFillPath(context);
-		
-		/* Technique outlined here http://stackoverflow.com/questions/4431292/inner-shadow-effect-on-uiview-layer */
-		CGMutablePathRef path = CGPathCreateMutable();
-		CGPathAddRect(path, NULL, CGRectInset(CGPathGetPathBoundingBox(innerShadowPath), -2, -2));
-		CGPathAddPath(path, NULL, innerShadowPath);
-		CGPathCloseSubpath(path);
-		CGContextAddPath(context, innerShadowPath); 
-		CGContextClip(context);         
-		CGContextSaveGState(context);
-		CGContextSetShadowWithColor(context, CGSizeMake(0.0f, 0.0f), 4.0f, [UIColor blackColor].CGColor);   
-		CGContextSaveGState(context);   
-		CGContextAddPath(context, path);
-		CGContextEOFillPath(context);
-		CGPathRelease(path);    
+	if (self.monthView.allowsRangeSelection) {
+		if (!CGPathIsEmpty(innerShadowPath)) {
+			CGContextRef context = UIGraphicsGetCurrentContext();
+			
+			// Help determining where the shadow is falling
+	//		UIColor *aColor = [UIColor whiteColor];
+	//		[aColor setFill];
+	//		CGContextAddPath(context, innerShadowPath);
+	//		CGContextFillPath(context);
+			
+			/* Technique outlined here http://stackoverflow.com/questions/4431292/inner-shadow-effect-on-uiview-layer */
+			CGMutablePathRef path = CGPathCreateMutable();
+			CGPathAddRect(path, NULL, CGRectInset(CGPathGetPathBoundingBox(innerShadowPath), -2, -2));
+			CGPathAddPath(path, NULL, innerShadowPath);
+			CGPathCloseSubpath(path);
+			CGContextAddPath(context, innerShadowPath); 
+			CGContextClip(context);         
+			CGContextSaveGState(context);
+			CGContextSetShadowWithColor(context, CGSizeMake(0.0f, 0.0f), 4.0f, [UIColor blackColor].CGColor);   
+			CGContextSaveGState(context);   
+			CGContextAddPath(context, path);
+			CGContextEOFillPath(context);
+			CGPathRelease(path);    
+		}
+		CGPathRelease(innerShadowPath);
 	}
-	CGPathRelease(innerShadowPath);
 }
 
 - (void) drawTileForIndex:(NSUInteger)index day:(NSUInteger)day currentMonth:(BOOL)monthFlag{
@@ -425,14 +429,16 @@
 			CGRect headerShadowRect = CGRectMake(innerRect.origin.x, innerRect.origin.y, innerRect.size.width, 1.0);
 			UIRectFill(headerShadowRect);
 			
-			/* Draw left handle if startDate */
-			if ([date isSameDay:startDate]) {
-				[[UIImage imageWithContentsOfFile:TKBUNDLE(@"TapkuLibrary.bundle/Images/calendar/Month-Calendar-Endpoint-Handle-Left.png")] drawInRect:innerRect];
-			}
-			
-			/* Draw right handle if endDate */
-			if ([date isSameDay:endDate]) {
-				[[UIImage imageWithContentsOfFile:TKBUNDLE(@"TapkuLibrary.bundle/Images/calendar/Month-Calendar-Endpoint-Handle-Right.png")] drawInRect:innerRect];
+			if (self.monthView.allowsRangeSelection) {
+				/* Draw left handle if startDate */
+				if ([date isSameDay:startDate]) {
+					[[UIImage imageWithContentsOfFile:TKBUNDLE(@"TapkuLibrary.bundle/Images/calendar/Month-Calendar-Endpoint-Handle-Left.png")] drawInRect:innerRect];
+				}
+				
+				/* Draw right handle if endDate */
+				if ([date isSameDay:endDate]) {
+					[[UIImage imageWithContentsOfFile:TKBUNDLE(@"TapkuLibrary.bundle/Images/calendar/Month-Calendar-Endpoint-Handle-Right.png")] drawInRect:innerRect];
+				}
 			}
 		}
 		else {
@@ -963,52 +969,58 @@
 
 - (void) dateWasTouched:(NSDate*)date touchEnded:(UIGestureRecognizerState)touchState{
 	if (date != nil) {		
-		if (touchState == UIGestureRecognizerStateBegan) {
-			endpoint = 0;
-			endpoint = ([date isSameDay:self.startDateSelected]) ? -1 : (([date isSameDay:self.endDateSelected]) ? 1 : 0);
-			
-			/* If we don't have a selection or the date isn't one of the end points of the current range */
-			if ((IsEmpty(self.startDateSelected) && IsEmpty(self.endDateSelected)) || endpoint == 0) {
-				self.startDateSelected = date;
-				self.endDateSelected = date;
-				endpoint = 1;
+		if (self.allowsRangeSelection) {
+			if (touchState == UIGestureRecognizerStateBegan) {
+				endpoint = 0;
+				endpoint = ([date isSameDay:self.startDateSelected]) ? -1 : (([date isSameDay:self.endDateSelected]) ? 1 : 0);
+				
+				/* If we don't have a selection or the date isn't one of the end points of the current range */
+				if ((IsEmpty(self.startDateSelected) && IsEmpty(self.endDateSelected)) || endpoint == 0) {
+					self.startDateSelected = date;
+					self.endDateSelected = date;
+					endpoint = 1;
+				}
+			}
+			else if (touchState == UIGestureRecognizerStateChanged) {
+				/* Rest handle selection if we are crossing over with the drag */
+				if ([self.startDateSelected isSameDay:date] && [self.endDateSelected isSameDay:date]) {
+					endpoint = 0;
+					return;
+				}
+				else {
+					/* Extend selection earlier */
+					if ([self.startDateSelected earlierDate:date] == date) {
+						self.startDateSelected = date;
+						
+						/* Pick the handle if it is not set */
+						if (endpoint == 0) {
+							endpoint = -1;
+						}
+					}
+					/* Extend selection later */
+					else if ([self.endDateSelected laterDate:date] == date) {
+						self.endDateSelected = date;
+						
+						/* Pick the handle if it is not set */
+						if (endpoint == 0) {
+							endpoint = 1;
+						}
+					}
+					/* Compress range from one side */
+					else {
+						if (endpoint == -1) {
+							self.startDateSelected = date;
+						}
+						else if (endpoint == 1) {
+							self.endDateSelected = date;
+						}
+					}
+				}
 			}
 		}
-		else if (touchState == UIGestureRecognizerStateChanged) {
-			/* Rest handle selection if we are crossing over with the drag */
-			if ([self.startDateSelected isSameDay:date] && [self.endDateSelected isSameDay:date]) {
-				endpoint = 0;
-				return;
-			}
-			else {
-				/* Extend selection earlier */
-				if ([self.startDateSelected earlierDate:date] == date) {
-					self.startDateSelected = date;
-					
-					/* Pick the handle if it is not set */
-					if (endpoint == 0) {
-						endpoint = -1;
-					}
-				}
-				/* Extend selection later */
-				else if ([self.endDateSelected laterDate:date] == date) {
-					self.endDateSelected = date;
-					
-					/* Pick the handle if it is not set */
-					if (endpoint == 0) {
-						endpoint = 1;
-					}
-				}
-				/* Compress range from one side */
-				else {
-					if (endpoint == -1) {
-						self.startDateSelected = date;
-					}
-					else if (endpoint == 1) {
-						self.endDateSelected = date;
-					}
-				}
-			}
+		else {
+			self.startDateSelected = date;
+			self.endDateSelected = date;
 		}
 		
 		[currentTile setNeedsDisplay];
@@ -1017,6 +1029,11 @@
 	/* Notify delegate of date selection */	
 	if([self.delegate respondsToSelector:@selector(calendarMonthView:didSelectDate:)])
 		[self.delegate calendarMonthView:self didSelectDate:[self dateSelected]];
+	
+	if (self.allowsRangeSelection && [self.delegate respondsToSelector:@selector(calendarMonthView:didSelectFromDate:toDate:)]) {
+		NSArray *dateRange = [self dateRangeSelected];
+		[self.delegate calendarMonthView:self didSelectFromDate:[dateRange objectAtIndex:0] toDate:[dateRange objectAtIndex:1]];
+	}
 	
 	/* Check if we have a month change */
 	if (touchState == UIGestureRecognizerStateEnded && ![date isSameMonth:currentTile.monthDate]) {
@@ -1043,10 +1060,7 @@
 		
 		if([self.delegate respondsToSelector:@selector(calendarMonthView:monthDidChange:animated:)])
 			[self.delegate calendarMonthView:self monthDidChange:[date monthDate] animated:YES];
-		
-		
 	}
-	
 }
 
 - (NSDate*) monthDate{
