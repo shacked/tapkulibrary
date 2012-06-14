@@ -432,12 +432,12 @@
 			if (self.monthView.allowsRangeSelection) {
 				/* Draw left handle if startDate */
 				if ([date isSameDay:startDate]) {
-					[[UIImage imageWithContentsOfFile:TKBUNDLE(@"TapkuLibrary.bundle/Images/calendar/Month-Calendar-Endpoint-Handle-Left.png")] drawInRect:innerRect];
+					[[UIImage imageWithContentsOfFile:TKBUNDLE(@"TapkuLibrary.bundle/Images/calendar/Month Calendar Endpoint Left.png")] drawInRect:innerRect];
 				}
 				
 				/* Draw right handle if endDate */
 				if ([date isSameDay:endDate]) {
-					[[UIImage imageWithContentsOfFile:TKBUNDLE(@"TapkuLibrary.bundle/Images/calendar/Month-Calendar-Endpoint-Handle-Right.png")] drawInRect:innerRect];
+					[[UIImage imageWithContentsOfFile:TKBUNDLE(@"TapkuLibrary.bundle/Images/calendar/Month Calendar Endpoint Right.png")] drawInRect:innerRect];
 				}
 			}
 		}

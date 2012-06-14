@@ -81,8 +81,6 @@
 	return [gregorian dateFromComponents:comp];
 }
 
-
-
 - (BOOL) isSameDay:(NSDate*)anotherDate{
 	TKDateInformation info1 = [self dateInformationWithTimeZone:[NSTimeZone timeZoneWithName:@"GMT"]];
 	TKDateInformation info2 = [anotherDate dateInformationWithTimeZone:[NSTimeZone timeZoneWithName:@"GMT"]];
