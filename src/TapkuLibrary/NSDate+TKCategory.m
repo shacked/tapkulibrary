@@ -174,7 +174,7 @@
 }
 - (NSString*) dayKeyString{
 	NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];	
-	[dateFormatter setDateFormat:@"yyyyMMddZ"];
+	[dateFormatter setDateFormat:@"yyyyMMdd"];
 	return [dateFormatter stringFromDate:self];
 }
 
