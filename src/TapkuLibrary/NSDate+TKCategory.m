@@ -157,28 +157,47 @@
 }
 
 
-- (NSString*) dayString{
+- (NSString*) dayString:(BOOL)inUTC{
 	NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];	
 	[dateFormatter setDateFormat:@"dd"];
+	if (inUTC) {
+		[dateFormatter setTimeZone:[NSTimeZone timeZoneWithName:@"GMT"]];
+	}
 	return [dateFormatter stringFromDate:self];
 }
-- (NSString*) monthString{
+- (NSString*) monthString:(BOOL)inUTC{
 	NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];	
 	[dateFormatter setDateFormat:@"MMMM"];
+	if (inUTC) {
+		[dateFormatter setTimeZone:[NSTimeZone timeZoneWithName:@"GMT"]];
+	}
 	return [dateFormatter stringFromDate:self];
 }
-- (NSString*) yearString{
+- (NSString*) yearString:(BOOL)inUTC{
 	NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];	
 	[dateFormatter setDateFormat:@"yyyy"];
+	if (inUTC) {
+		[dateFormatter setTimeZone:[NSTimeZone timeZoneWithName:@"GMT"]];
+	}
 	return [dateFormatter stringFromDate:self];
 }
-- (NSString*) dayKeyString{
+- (NSString*) isoDateString:(BOOL)inUTC{
 	NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];	
 	[dateFormatter setDateFormat:@"yyyyMMdd"];
+	if (inUTC) {
+		[dateFormatter setTimeZone:[NSTimeZone timeZoneWithName:@"GMT"]];
+	}
 	return [dateFormatter stringFromDate:self];
 }
 
-
+- (NSString*) isoTimeString:(BOOL)inUTC{
+	NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];	
+	[dateFormatter setDateFormat:@"HH:mm:ss"];
+	if (inUTC) {
+		[dateFormatter setTimeZone:[NSTimeZone timeZoneWithName:@"GMT"]];
+	}
+	return [dateFormatter stringFromDate:self];
+}
 
 
 - (TKDateInformation) dateInformationWithTimeZone:(NSTimeZone*)tz{

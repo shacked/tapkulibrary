@@ -687,7 +687,7 @@
 	[self addSubview:self.tileBox];
 	
 	NSDate *date = [NSDate date];
-	self.monthYear.text = [NSString stringWithFormat:@"%@ %@",[date monthString],[date yearString]];
+	self.monthYear.text = [NSString stringWithFormat:@"%@ %@",[date monthString:NO],[date yearString:NO]];
 	[self addSubview:self.monthYear];
 	
 	
@@ -835,7 +835,7 @@
 	oldTile = currentTile;
 	currentTile = newTile;
 
-	monthYear.text = [NSString stringWithFormat:@"%@ %@",[localNextMonth monthString],[localNextMonth yearString]];
+	monthYear.text = [NSString stringWithFormat:@"%@ %@",[localNextMonth monthString:NO],[localNextMonth yearString:NO]];
 }
 
 - (void) changeMonth:(UIButton *)sender{
@@ -958,7 +958,7 @@
 			
 			/* Update shadow position and month title label */
 			self.shadow.frame = CGRectMake(0, self.frame.size.height-self.shadow.frame.size.height+21, self.shadow.frame.size.width, self.shadow.frame.size.height);
-			self.monthYear.text = [NSString stringWithFormat:@"%@ %@",[date monthString],[date yearString]];
+			self.monthYear.text = [NSString stringWithFormat:@"%@ %@",[date monthString:NO],[date yearString:NO]];
 			
 			/* Alert delegeate of month change */
 			if([self.delegate respondsToSelector:@selector(calendarMonthView:monthDidChange:animated:)])
