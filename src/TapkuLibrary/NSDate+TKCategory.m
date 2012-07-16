@@ -183,7 +183,7 @@
 }
 - (NSString*) isoDateString:(BOOL)inUTC{
 	NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];	
-	[dateFormatter setDateFormat:@"yyyyMMdd"];
+	[dateFormatter setDateFormat:@"yyyy-MM-dd"];
 	if (inUTC) {
 		[dateFormatter setTimeZone:[NSTimeZone timeZoneWithName:@"GMT"]];
 	}
