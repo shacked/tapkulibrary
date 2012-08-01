@@ -81,6 +81,16 @@
 	return [gregorian dateFromComponents:comp];
 }
 
+- (BOOL) isToday{
+	TKDateInformation info = [[NSDate date] dateInformation];
+	info.hour = 0;
+	info.minute = 0;
+	info.second = 0;
+	
+	NSDate *nowGMT = [NSDate dateFromDateInformation:info timeZone:[NSTimeZone timeZoneWithName:@"GMT"]];
+	return [self isSameDay:nowGMT];
+}
+
 - (BOOL) isSameDay:(NSDate*)anotherDate{
 	TKDateInformation info1 = [self dateInformationWithTimeZone:[NSTimeZone timeZoneWithName:@"GMT"]];
 	TKDateInformation info2 = [anotherDate dateInformationWithTimeZone:[NSTimeZone timeZoneWithName:@"GMT"]];
@@ -131,12 +141,6 @@
     return ((abs(time) / (60.0 * 60.0 * 24.0)) + 0.5);
 }
 
-- (BOOL) isToday{
-	return [self isSameDay:[NSDate date]];
-} 
-
-
-
 - (NSDate *) dateByAddingDays:(NSInteger)days {
 	NSDateComponents *c = [[NSDateComponents alloc] init];
 	c.day = days;
@@ -165,6 +169,7 @@
 	}
 	return [dateFormatter stringFromDate:self];
 }
+
 - (NSString*) monthString:(BOOL)inUTC{
 	NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];	
 	[dateFormatter setDateFormat:@"MMMM"];
@@ -173,6 +178,7 @@
 	}
 	return [dateFormatter stringFromDate:self];
 }
+
 - (NSString*) yearString:(BOOL)inUTC{
 	NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];	
 	[dateFormatter setDateFormat:@"yyyy"];
@@ -181,6 +187,7 @@
 	}
 	return [dateFormatter stringFromDate:self];
 }
+
 - (NSString*) isoDateString:(BOOL)inUTC{
 	NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];	
 	[dateFormatter setDateFormat:@"yyyy-MM-dd"];
@@ -193,6 +200,24 @@
 - (NSString*) isoTimeString:(BOOL)inUTC{
 	NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];	
 	[dateFormatter setDateFormat:@"HH:mm:ss"];
+	if (inUTC) {
+		[dateFormatter setTimeZone:[NSTimeZone timeZoneWithName:@"GMT"]];
+	}
+	return [dateFormatter stringFromDate:self];
+}
+
+- (NSString*) dateKey:(BOOL)inUTC{
+	NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+	[dateFormatter setDateFormat:@"yyyyMMdd"];
+	if (inUTC) {
+		[dateFormatter setTimeZone:[NSTimeZone timeZoneWithName:@"GMT"]];
+	}
+	return [dateFormatter stringFromDate:self];
+}
+
+- (NSString*) timeKey:(BOOL)inUTC{
+	NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+	[dateFormatter setDateFormat:@"HHmm"];
 	if (inUTC) {
 		[dateFormatter setTimeZone:[NSTimeZone timeZoneWithName:@"GMT"]];
 	}

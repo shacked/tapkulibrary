@@ -71,18 +71,12 @@ typedef struct TKDateInformation TKDateInformation;
 
 - (NSDate*) timelessDateGMT;
 
-
+- (BOOL) isToday;
 - (BOOL) isSameDay:(NSDate*)anotherDate;
 - (BOOL) isSameMonth:(NSDate*)anotherDate;
 - (BOOL) isBetweenFromDate:(NSDate*)fromDate toDate:(NSDate*)toDate;
 - (int) monthsBetweenDate:(NSDate *)toDate;
 - (NSInteger) daysBetweenDate:(NSDate*)date;
-
-/** Returns a Boolean value that indicates whether the date object is that same date information as the current day. 
- @return YES if the date object represents the current date, otherwise NO.
- */
-- (BOOL) isToday;
-
 
 - (NSDate *) dateByAddingDays:(NSInteger)days;
 + (NSDate *) dateWithDatePart:(NSDate *)aDate andTimePart:(NSDate *)aTime;
@@ -92,6 +86,9 @@ typedef struct TKDateInformation TKDateInformation;
 - (NSString *) yearString:(BOOL)inUTC;
 - (NSString*) isoDateString:(BOOL)inUTC;
 - (NSString*) isoTimeString:(BOOL)inUTC;
+- (NSString*) dateKey:(BOOL)inUTC;
+- (NSString*) timeKey:(BOOL)inUTC;
+
 
 
 
