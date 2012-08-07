@@ -86,8 +86,7 @@ typedef struct TKDateInformation TKDateInformation;
 - (NSString *) yearString:(BOOL)inUTC;
 - (NSString*) isoDateString:(BOOL)inUTC;
 - (NSString*) isoTimeString:(BOOL)inUTC;
-- (NSString*) dateKey:(BOOL)inUTC;
-- (NSString*) timeKey:(BOOL)inUTC;
+
 
 
 
