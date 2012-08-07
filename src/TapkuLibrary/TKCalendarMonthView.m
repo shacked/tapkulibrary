@@ -149,7 +149,7 @@
 @property (strong,nonatomic) UIFont *countFont;
 @property (strong,nonatomic) UIFont *dotFont;
 @property (strong,nonatomic) UIFont *dateFont;
-@property (weak,nonatomic) TKCalendarMonthView *monthView;
+@property (assign,nonatomic) TKCalendarMonthView *monthView;
 @property (strong,nonatomic) NSDate *monthDate;
 @property (strong,nonatomic) NSArray *dates;
 
@@ -975,7 +975,7 @@
 				endpoint = ([date isSameDay:self.startDateSelected]) ? -1 : (([date isSameDay:self.endDateSelected]) ? 1 : 0);
 				
 				/* If we don't have a selection or the date isn't one of the end points of the current range */
-				if ((IsEmpty(self.startDateSelected) && IsEmpty(self.endDateSelected)) || endpoint == 0) {
+				if ((self.startDateSelected == nil && self.endDateSelected == nil) || endpoint == 0) {
 					self.startDateSelected = date;
 					self.endDateSelected = date;
 					endpoint = 1;
