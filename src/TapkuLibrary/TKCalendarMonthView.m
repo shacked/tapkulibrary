@@ -46,7 +46,6 @@
 @property (strong,nonatomic) UIImageView *shadow;
 
 - (void) dateWasTouched:(NSDate*)date touchEnded:(UIGestureRecognizerState)touchState;
-- (NSArray*) dateRangeSelectedGMT;
 
 @end
 
@@ -400,7 +399,7 @@
 	CGRect rect = [self rectForCellAtIndex:index];
 	
 	NSDate *date = [[self.dates objectAtIndex:0] dateByAddingDays:index];
-	NSArray *dateRange = [self.monthView dateRangeSelectedGMT];
+	NSArray *dateRange = [self.monthView dateRangeSelected];
 	NSDate *startDate = [dateRange objectAtIndex:0];
 	NSDate *endDate = [dateRange objectAtIndex:1];
 	
@@ -894,35 +893,17 @@
 }
 
 - (NSDate*) dateSelected{
-	TKDateInformation startInfo = [self.startDateSelected dateInformationWithTimeZone:[NSTimeZone timeZoneWithName:@"GMT"]];
-	NSDate *localStartDate = [NSDate dateFromDateInformation:startInfo timeZone:[NSTimeZone systemTimeZone]];
-	
-	return localStartDate;
+	return self.startDateSelected;
 }
 
 - (NSArray*) dateRangeSelected{	
-	if (self.startDateSelected != nil && self.endDateSelected != nil) {
-		TKDateInformation startInfo = [self.startDateSelected dateInformationWithTimeZone:[NSTimeZone timeZoneWithName:@"GMT"]];
-		NSDate *localStartDate = [NSDate dateFromDateInformation:startInfo timeZone:[NSTimeZone systemTimeZone]];
-		
-		TKDateInformation endInfo = [[[self.endDateSelected dateByAddingDays:1] dateByAddingTimeInterval:-1] dateInformationWithTimeZone:[NSTimeZone timeZoneWithName:@"GMT"]];
-		NSDate *localEndDate = [NSDate dateFromDateInformation:endInfo timeZone:[NSTimeZone systemTimeZone]];
-		
-		return [NSArray arrayWithObjects:localStartDate, localEndDate, nil];
-	}
-	
-	return nil;
-}
-
-- (NSArray*) dateRangeSelectedGMT{	
-	if (self.startDateSelected != nil && self.endDateSelected != nil) {
+	if (self.startDateSelected != nil && self.endDateSelected != nil) {		
 		NSDate *endDateAdjusted = [[self.endDateSelected dateByAddingDays:1] dateByAddingTimeInterval:-1];
 		return [NSArray arrayWithObjects:self.startDateSelected, endDateAdjusted, nil];
 	}
 	
 	return nil;
 }
-
 
 - (void) dateWasSelected{	
 	NSDate *date = self.startDateSelected;

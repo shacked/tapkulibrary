@@ -206,6 +206,16 @@
 	return [dateFormatter stringFromDate:self];
 }
 
++ (NSDate*) isoDateFromString:(NSString*)string inUTC:(BOOL)inUTC {
+	NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+	[dateFormatter setDateFormat:@"yyyy-MM-dd"];
+	if (inUTC) {
+		[dateFormatter setTimeZone:[NSTimeZone timeZoneWithName:@"GMT"]];
+	}
+	return [dateFormatter dateFromString:string];
+}
+
+
 - (TKDateInformation) dateInformationWithTimeZone:(NSTimeZone*)tz{
 	
 	
