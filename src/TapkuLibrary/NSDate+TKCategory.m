@@ -30,39 +30,97 @@
  */
 #import "NSDate+TKCategory.h"
 
+static NSCalendar *gregorian = nil;
+static NSCalendar *currentCalendar = nil;
+static NSDateFormatter *utcDayDateFormatter = nil;
+static NSDateFormatter *systemDayDateFormatter = nil;
+static NSDateFormatter *utcMonthDateFormatter = nil;
+static NSDateFormatter *systemMonthDateFormatter = nil;
 
 @implementation NSDate (TKCategory)
+
++ (void)load; {	
+	static dispatch_once_t onceToken;
+	dispatch_once(&onceToken, ^{
+		gregorian = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
+	});
+	
+	static dispatch_once_t onceToken2;
+	dispatch_once(&onceToken2, ^{
+		currentCalendar = [NSCalendar currentCalendar];
+	});
+	
+	static dispatch_once_t onceToken3;
+	dispatch_once(&onceToken3, ^{
+		utcDayDateFormatter = [[NSDateFormatter alloc] init];
+		[utcDayDateFormatter setDateFormat:@"yyyy-MM-dd"];
+		[utcDayDateFormatter setTimeZone:[NSTimeZone timeZoneWithName:@"GMT"]];
+	});
+	
+	static dispatch_once_t onceToken4;
+	dispatch_once(&onceToken4, ^{
+		utcMonthDateFormatter = [[NSDateFormatter alloc] init];
+		[utcMonthDateFormatter setDateFormat:@"yyyy-MM"];
+		[utcMonthDateFormatter setTimeZone:[NSTimeZone timeZoneWithName:@"GMT"]];
+	});
+	
+	static dispatch_once_t onceToken5;
+	dispatch_once(&onceToken5, ^{
+		systemDayDateFormatter = [[NSDateFormatter alloc] init];
+		[systemDayDateFormatter setDateFormat:@"yyyy-MM-dd"];
+	});
+	
+	static dispatch_once_t onceToken6;
+	dispatch_once(&onceToken6, ^{
+		systemMonthDateFormatter = [[NSDateFormatter alloc] init];
+		[systemMonthDateFormatter setDateFormat:@"yyyy-MM"];
+		[systemMonthDateFormatter setTimeZone:[NSTimeZone timeZoneWithName:@"GMT"]];
+	});
+}
 
 + (NSDate*) yesterday{
 	TKDateInformation inf = [[NSDate date] dateInformation];
 	inf.day--;
 	return [NSDate dateFromDateInformation:inf];
 }
+
 + (NSDate*) month{
     return [[NSDate date] monthDate];
 }
 
 - (NSDate*) monthDate {
-	NSCalendar *gregorian = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
-	NSDateComponents *comp = [gregorian components:(NSYearCalendarUnit | NSMonthCalendarUnit) fromDate:self];
-	[comp setDay:1];
-	NSDate *date = [gregorian dateFromComponents:comp];
+	NSDate *date = nil;
+	
+	@synchronized(gregorian) {
+		NSDateComponents *comp = [gregorian components:(NSYearCalendarUnit | NSMonthCalendarUnit) fromDate:self];
+		[comp setDay:1];
+		date = [gregorian dateFromComponents:comp];
+	}
+	
     return date;
 }
 
 
 - (int) weekday{
-	NSCalendar *gregorian = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
-	NSDateComponents *comps = [gregorian components:(NSDayCalendarUnit | NSMonthCalendarUnit | NSYearCalendarUnit | NSWeekdayCalendarUnit) fromDate:self];
-	int weekday = [comps weekday];
+	int weekday = 0;
+	
+	@synchronized(gregorian) {
+		NSDateComponents *comps = [gregorian components:(NSDayCalendarUnit | NSMonthCalendarUnit | NSYearCalendarUnit | NSWeekdayCalendarUnit) fromDate:self];
+		weekday = [comps weekday];
+	}
+	
 	return weekday;
 }
 
 - (NSDate*) timelessDate {
-	NSDate *day = self;
-	NSCalendar *gregorian = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
-	NSDateComponents *comp = [gregorian components:(NSYearCalendarUnit | NSMonthCalendarUnit | NSDayCalendarUnit) fromDate:day];
-	return [gregorian dateFromComponents:comp];
+	NSDate *date = nil;
+	
+	@synchronized(gregorian) {
+		NSDateComponents *comp = [gregorian components:(NSYearCalendarUnit | NSMonthCalendarUnit | NSDayCalendarUnit) fromDate:self];
+		date = [gregorian dateFromComponents:comp];
+	}
+	
+	return date;
 }
 
 - (NSDate*) timelessDateGMT {
@@ -75,27 +133,39 @@
 }
 
 - (NSDate*) monthlessDate {
-	NSDate *day = self;
-	NSCalendar *gregorian = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
-	NSDateComponents *comp = [gregorian components:(NSYearCalendarUnit | NSMonthCalendarUnit) fromDate:day];
-	return [gregorian dateFromComponents:comp];
+	NSDate *date = nil;
+	
+	@synchronized(gregorian) {
+		NSDateComponents *comp = [gregorian components:(NSYearCalendarUnit | NSMonthCalendarUnit) fromDate:self];
+		date = [gregorian dateFromComponents:comp];
+	}
+	
+	return date;
 }
 
 - (BOOL) isToday{
-	TKDateInformation info = [[NSDate date] dateInformation];
-	info.hour = 0;
-	info.minute = 0;
-	info.second = 0;
+	NSString *todayString = [systemDayDateFormatter stringFromDate:[NSDate date]];
+	NSString *selfDayString = [utcDayDateFormatter stringFromDate:self];
+	return [todayString isEqualToString:selfDayString];
 	
-	NSDate *nowGMT = [NSDate dateFromDateInformation:info timeZone:[NSTimeZone timeZoneWithName:@"GMT"]];
-	return [self isSameDay:nowGMT];
+//	TKDateInformation info1 = [self dateInformationWithTimeZone:[NSTimeZone timeZoneWithName:@"GMT"]];
+//	TKDateInformation info2 = [[NSDate date] dateInformation];
+//	info2.hour = 0;
+//	info2.minute = 0;
+//	info2.second = 0;
+//	
+//	return (info1.year == info2.year && info1.month == info2.month && info1.day == info2.day);
 }
 
 - (BOOL) isSameDay:(NSDate*)anotherDate{
-	TKDateInformation info1 = [self dateInformationWithTimeZone:[NSTimeZone timeZoneWithName:@"GMT"]];
-	TKDateInformation info2 = [anotherDate dateInformationWithTimeZone:[NSTimeZone timeZoneWithName:@"GMT"]];
-	return (info1.year == info2.year && info1.month == info2.month && info1.day == info2.day);
-} 
+	NSString *anotherDayString = [utcDayDateFormatter stringFromDate:anotherDate];
+	NSString *selfDayString = [utcDayDateFormatter stringFromDate:self];
+	return [anotherDayString isEqualToString:selfDayString];
+	
+//	TKDateInformation info1 = [self dateInformationWithTimeZone:[NSTimeZone timeZoneWithName:@"GMT"]];
+//	TKDateInformation info2 = [anotherDate dateInformationWithTimeZone:[NSTimeZone timeZoneWithName:@"GMT"]];
+//	return (info1.year == info2.year && info1.month == info2.month && info1.day == info2.day);
+}
 
 - (BOOL) isSameMonth:(NSDate*)anotherDate{
 	TKDateInformation info1 = [self dateInformationWithTimeZone:[NSTimeZone timeZoneWithName:@"GMT"]];
@@ -126,13 +196,15 @@
 
 /* This implementation fails */
 - (int) monthsBetweenDate:(NSDate *)toDate{
-    NSCalendar *gregorian = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
-    
-    NSDateComponents *components = [gregorian components:NSMonthCalendarUnit
-                                                fromDate:[self monthlessDate]
-                                                  toDate:[toDate monthlessDate]
-                                                 options:0];
-    NSInteger months = [components month];
+	NSInteger months = 0;
+	@synchronized(gregorian) {
+		NSDateComponents *components = [gregorian components:NSMonthCalendarUnit
+													fromDate:[self monthlessDate]
+													  toDate:[toDate monthlessDate]
+													 options:0];
+		months = [components month];
+	}
+	
     return abs(months);
 }
 
@@ -144,7 +216,14 @@
 - (NSDate *) dateByAddingDays:(NSInteger)days {
 	NSDateComponents *c = [[NSDateComponents alloc] init];
 	c.day = days;
-	return [[NSCalendar currentCalendar] dateByAddingComponents:c toDate:self options:0];
+	
+	NSDate *date = nil;
+	
+	@synchronized(currentCalendar) {
+		date = [currentCalendar dateByAddingComponents:c toDate:self options:0];
+	}
+	
+	return date;
 }
 
 + (NSDate *) dateWithDatePart:(NSDate *)aDate andTimePart:(NSDate *)aTime {
@@ -218,24 +297,24 @@
 
 - (TKDateInformation) dateInformationWithTimeZone:(NSTimeZone*)tz{
 	
-	
 	TKDateInformation info;
+	NSDate *date = [NSDate dateWithTimeIntervalSince1970:[self timeIntervalSince1970]];
 	
-	NSCalendar *gregorian = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
-	[gregorian setTimeZone:tz];
-	NSDateComponents *comp = [gregorian components:(NSMonthCalendarUnit | NSMinuteCalendarUnit | NSYearCalendarUnit | 
-													NSDayCalendarUnit | NSWeekdayCalendarUnit | NSHourCalendarUnit | NSSecondCalendarUnit) 
-										  fromDate:self];
-	info.day = [comp day];
-	info.month = [comp month];
-	info.year = [comp year];
-	
-	info.hour = [comp hour];
-	info.minute = [comp minute];
-	info.second = [comp second];
-	
-	info.weekday = [comp weekday];
-	
+	@synchronized(gregorian) {
+		[gregorian setTimeZone:tz];
+		NSDateComponents *comp = [gregorian components:(NSMonthCalendarUnit | NSMinuteCalendarUnit | NSYearCalendarUnit | 
+														NSDayCalendarUnit | NSWeekdayCalendarUnit | NSHourCalendarUnit | NSSecondCalendarUnit) 
+											  fromDate:date];
+		info.day = [comp day];
+		info.month = [comp month];
+		info.year = [comp year];
+		
+		info.hour = [comp hour];
+		info.minute = [comp minute];
+		info.second = [comp second];
+		
+		info.weekday = [comp weekday];
+	}
 	
 	return info;
 	
@@ -243,54 +322,64 @@
 - (TKDateInformation) dateInformation{
 	
 	TKDateInformation info;
+	NSDate *date = [NSDate dateWithTimeIntervalSince1970:[self timeIntervalSince1970]];
 	
-	NSCalendar *gregorian = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
-	NSDateComponents *comp = [gregorian components:(NSMonthCalendarUnit | NSMinuteCalendarUnit | NSYearCalendarUnit | 
-													NSDayCalendarUnit | NSWeekdayCalendarUnit | NSHourCalendarUnit | NSSecondCalendarUnit) 
-										  fromDate:self];
-	info.day = [comp day];
-	info.month = [comp month];
-	info.year = [comp year];
-	
-	info.hour = [comp hour];
-	info.minute = [comp minute];
-	info.second = [comp second];
-	
-	info.weekday = [comp weekday];
-	
+	@synchronized(gregorian) {
+		NSDateComponents *comp = [gregorian components:(NSMonthCalendarUnit | NSMinuteCalendarUnit | NSYearCalendarUnit |
+														NSDayCalendarUnit | NSWeekdayCalendarUnit | NSHourCalendarUnit | NSSecondCalendarUnit) 
+											  fromDate:date];
+		info.day = [comp day];
+		info.month = [comp month];
+		info.year = [comp year];
+		
+		info.hour = [comp hour];
+		info.minute = [comp minute];
+		info.second = [comp second];
+		
+		info.weekday = [comp weekday];
+	}
     
 	return info;
 }
 + (NSDate*) dateFromDateInformation:(TKDateInformation)info timeZone:(NSTimeZone*)tz{
+	NSDate *date = nil;
 	
-	NSCalendar *gregorian = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
-	[gregorian setTimeZone:tz];
-	NSDateComponents *comp = [gregorian components:(NSYearCalendarUnit | NSMonthCalendarUnit) fromDate:[NSDate date]];
+	@synchronized(gregorian) {
+		[gregorian setTimeZone:tz];
+		NSDateComponents *comp = [gregorian components:(NSYearCalendarUnit | NSMonthCalendarUnit) fromDate:[NSDate date]];
+		
+		[comp setDay:info.day];
+		[comp setMonth:info.month];
+		[comp setYear:info.year];
+		[comp setHour:info.hour];
+		[comp setMinute:info.minute];
+		[comp setSecond:info.second];
+		[comp setTimeZone:tz];
+		
+		date = [gregorian dateFromComponents:comp];
+	}
 	
-	[comp setDay:info.day];
-	[comp setMonth:info.month];
-	[comp setYear:info.year];
-	[comp setHour:info.hour];
-	[comp setMinute:info.minute];
-	[comp setSecond:info.second];
-	[comp setTimeZone:tz];
-	
-	return [gregorian dateFromComponents:comp];
+	return date;
 }
+
 + (NSDate*) dateFromDateInformation:(TKDateInformation)info{
+	NSDate *date = nil;
 	
-	NSCalendar *gregorian = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
-	NSDateComponents *comp = [gregorian components:(NSYearCalendarUnit | NSMonthCalendarUnit) fromDate:[NSDate date]];
+	@synchronized(gregorian) {
+		NSDateComponents *comp = [gregorian components:(NSYearCalendarUnit | NSMonthCalendarUnit) fromDate:[NSDate date]];
+		
+		[comp setDay:info.day];
+		[comp setMonth:info.month];
+		[comp setYear:info.year];
+		[comp setHour:info.hour];
+		[comp setMinute:info.minute];
+		[comp setSecond:info.second];
+		//[comp setTimeZone:[NSTimeZone timeZoneForSecondsFromGMT:0]];
+		
+		date = [gregorian dateFromComponents:comp];
+	}
 	
-	[comp setDay:info.day];
-	[comp setMonth:info.month];
-	[comp setYear:info.year];
-	[comp setHour:info.hour];
-	[comp setMinute:info.minute];
-	[comp setSecond:info.second];
-	//[comp setTimeZone:[NSTimeZone timeZoneForSecondsFromGMT:0]];
-	
-	return [gregorian dateFromComponents:comp];
+	return date;
 }
 
 + (NSString*) dateInformationDescriptionWithInformation:(TKDateInformation)info{

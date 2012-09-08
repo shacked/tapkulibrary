@@ -88,6 +88,9 @@
 /** Reloads the current month grid. */
 - (void) reload;
 
+/** Trigger redraw of current month */
+- (void)setNeedsDisplayOnCurrentMonth;
+
 @end
 
 /** The delegate of a `TKCalendarMonthView` object must adopt the `TKCalendarMonthViewDelegate` protocol. */ 

@@ -470,6 +470,7 @@
 	}
 
 	UIColor *fontColor = [UIColor colorWithRed:59/255. green:73/255. blue:88/255. alpha:1];
+	UIColor *countColor = [UIColor colorWithRed:0.031f green:0.506f blue:0.702f alpha:1.0f];
 	UIColor *shadowColor = [UIColor whiteColor];
 	CGFloat shadowOffset = 1;
 	
@@ -479,6 +480,7 @@
 		if (endpoint) {
 			shadowOffset = -1;
 		}
+		countColor = fontColor;
 	}
 	else if (!monthFlag) {
 		fontColor = [UIColor grayColor];
@@ -549,6 +551,7 @@
 				rect.size.height = 10;
 				rect.origin.y += 22;
 				
+				[countColor set];
 				[[mark stringValue] drawInRect: rect
 								   withFont: self.countFont
 							  lineBreakMode: UILineBreakModeWordWrap 
@@ -693,7 +696,7 @@
 	[self addSubview:self.leftArrow];
 	[self addSubview:self.rightArrow];
 	[self addSubview:self.shadow];
-	self.shadow.frame = CGRectMake(0, self.frame.size.height-self.shadow.frame.size.height+21, self.shadow.frame.size.width, self.shadow.frame.size.height);
+	self.shadow.frame = CGRectMake(0, self.frame.size.height, self.shadow.frame.size.width, self.shadow.frame.size.height);
 	
 	
 	NSDateFormatter *dateFormat = [[NSDateFormatter alloc] init];
@@ -814,7 +817,7 @@
 		self.tileBox.frame = CGRectMake(self.tileBox.frame.origin.x, self.tileBox.frame.origin.y, self.tileBox.frame.size.width, newTile.frame.size.height);
 		self.frame = CGRectMake(self.frame.origin.x, self.frame.origin.y, self.bounds.size.width, self.tileBox.frame.size.height+self.tileBox.frame.origin.y);
 		
-		self.shadow.frame = CGRectMake(0, self.frame.size.height-self.shadow.frame.size.height+21, self.shadow.frame.size.width, self.shadow.frame.size.height);
+		self.shadow.frame = CGRectMake(0, self.frame.size.height, self.shadow.frame.size.width, self.shadow.frame.size.height);
 		
 		
 	}else{
@@ -824,7 +827,7 @@
 		self.frame = CGRectMake(self.frame.origin.x, self.frame.origin.y, self.bounds.size.width, self.tileBox.frame.size.height+self.tileBox.frame.origin.y);
 		currentTile.frame = CGRectMake(0,  newTile.frame.size.height - overlap, currentTile.frame.size.width, currentTile.frame.size.height);
 		
-		self.shadow.frame = CGRectMake(0, self.frame.size.height-self.shadow.frame.size.height+21, self.shadow.frame.size.width, self.shadow.frame.size.height);
+		self.shadow.frame = CGRectMake(0, self.frame.size.height, self.shadow.frame.size.width, self.shadow.frame.size.height);
 		
 	}
 	
@@ -938,7 +941,7 @@
 			self.frame = CGRectMake(self.frame.origin.x, self.frame.origin.y, self.bounds.size.width, self.tileBox.frame.size.height+self.tileBox.frame.origin.y);
 			
 			/* Update shadow position and month title label */
-			self.shadow.frame = CGRectMake(0, self.frame.size.height-self.shadow.frame.size.height+21, self.shadow.frame.size.width, self.shadow.frame.size.height);
+			self.shadow.frame = CGRectMake(0, self.frame.size.height, self.shadow.frame.size.width, self.shadow.frame.size.height);
 			self.monthYear.text = [NSString stringWithFormat:@"%@ %@",[date monthString:NO],[date yearString:NO]];
 			
 			/* Alert delegeate of month change */
@@ -961,6 +964,8 @@
 					self.endDateSelected = date;
 					endpoint = 1;
 				}
+				
+				[currentTile setNeedsDisplay];
 			}
 			else if (touchState == UIGestureRecognizerStateChanged) {
 				/* Rest handle selection if we are crossing over with the drag */
@@ -977,6 +982,8 @@
 						if (endpoint == 0) {
 							endpoint = -1;
 						}
+						
+						[currentTile setNeedsDisplay];
 					}
 					/* Extend selection later */
 					else if ([self.endDateSelected laterDate:date] == date) {
@@ -986,14 +993,18 @@
 						if (endpoint == 0) {
 							endpoint = 1;
 						}
+						
+						[currentTile setNeedsDisplay];
 					}
 					/* Compress range from one side */
-					else {
+					else if (![self.startDateSelected isEqualToDate:date] && ![self.endDateSelected isEqualToDate:date]) {
 						if (endpoint == -1) {
 							self.startDateSelected = date;
+							[currentTile setNeedsDisplay];
 						}
 						else if (endpoint == 1) {
 							self.endDateSelected = date;
+							[currentTile setNeedsDisplay];
 						}
 					}
 				}
@@ -1002,9 +1013,8 @@
 		else {
 			self.startDateSelected = date;
 			self.endDateSelected = date;
+			[currentTile setNeedsDisplay];
 		}
-		
-		[currentTile setNeedsDisplay];
 	}
 	
 	/* Notify delegate of date selection */	
@@ -1017,10 +1027,12 @@
 	}
 	
 	/* Check if we have a month change */
-	if (touchState == UIGestureRecognizerStateEnded && ![date isSameMonth:currentTile.monthDate]) {
+	if (touchState == UIGestureRecognizerStateEnded && (![date isSameMonth:currentTile.monthDate] ||
+														(currentTile.dates != nil && [currentTile.dates count] > 0 &&
+														 ([date isSameDay:[currentTile.dates objectAtIndex:0]] || [date isSameDay:[currentTile.dates lastObject]])))) {
 		
 		UIButton *arrowButton;
-		if ([date earlierDate:currentTile.monthDate] == date) {
+		if ([date earlierDate:currentTile.monthDate] == date || (currentTile.dates != nil && [currentTile.dates count] > 0 && [date isSameDay:[currentTile.dates objectAtIndex:0]])) {
 			arrowButton = self.leftArrow;
 		}
 		else {
@@ -1058,9 +1070,11 @@
 	[self.tileBox addSubview:refresh];
 	[currentTile removeFromSuperview];
 	currentTile = refresh;
-	
 }
 
+- (void)setNeedsDisplayOnCurrentMonth; {
+	[currentTile setNeedsDisplay];
+}
 
 #pragma mark Properties
 - (UIImageView *) topBackground{
