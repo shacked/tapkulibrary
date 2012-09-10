@@ -88,7 +88,12 @@ typedef struct TKDateInformation TKDateInformation;
 - (NSString*) isoTimeString:(BOOL)inUTC;
 + (NSDate*) isoDateFromString:(NSString*)string inUTC:(BOOL)inUTC;
 
-
++ (NSDate*) lastofMonthDate;
++ (NSDate*) lastOfCurrentMonth;
+- (NSDate*) firstOfMonth;
+- (NSDate*) nextMonth;
+- (NSDate*) previousMonth;
+- (NSDate*) lastOfMonthDate;
 
 
 - (TKDateInformation) dateInformation;

@@ -49,98 +49,6 @@
 
 @end
 
-#pragma mark NSDate (calendarcategory)
-@interface NSDate (calendarcategory)
-
-+ (NSDate*) lastofMonthDate;
-
-+ (NSDate*) lastOfCurrentMonth;
-
-- (NSDate*) firstOfMonth;
-
-- (NSDate*) nextMonth;
-
-- (NSDate*) previousMonth;
-
-- (NSDate*) lastOfMonthDate;
-
-@end
-
-
-@implementation NSDate (calendarcategory)
-
-+ (NSDate*) lastofMonthDate{
-    NSDate *day = [NSDate date];
-	NSCalendar *gregorian = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
-	NSDateComponents *comp = [gregorian components:(NSYearCalendarUnit | NSMonthCalendarUnit) fromDate:day];
-	[comp setDay:0];
-	[comp setMonth:comp.month+1];
-	return [gregorian dateFromComponents:comp];
-}
-
-+ (NSDate*) lastOfCurrentMonth{
-	NSDate *day = [NSDate date];
-	NSCalendar *gregorian = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
-	NSDateComponents *comp = [gregorian components:(NSYearCalendarUnit | NSMonthCalendarUnit) fromDate:day];
-	[comp setDay:0];
-	[comp setMonth:comp.month+1];
-	return [gregorian dateFromComponents:comp];
-}
-
-- (NSDate*) firstOfMonth{
-	TKDateInformation info = [self dateInformationWithTimeZone:[NSTimeZone timeZoneForSecondsFromGMT:0]];
-	info.day = 1;
-	info.minute = 0;
-	info.second = 0;
-	info.hour = 0;
-	return [NSDate dateFromDateInformation:info timeZone:[NSTimeZone timeZoneForSecondsFromGMT:0]];
-}
-
-- (NSDate*) nextMonth{
-	
-	
-	TKDateInformation info = [self dateInformationWithTimeZone:[NSTimeZone timeZoneForSecondsFromGMT:0]];
-	info.month++;
-	if(info.month>12){
-		info.month = 1;
-		info.year++;
-	}
-	info.minute = 0;
-	info.second = 0;
-	info.hour = 0;
-	
-	return [NSDate dateFromDateInformation:info timeZone:[NSTimeZone timeZoneForSecondsFromGMT:0]];
-	
-}
-
-- (NSDate*) previousMonth{
-	
-	
-	TKDateInformation info = [self dateInformationWithTimeZone:[NSTimeZone timeZoneForSecondsFromGMT:0]];
-	info.month--;
-	if(info.month<1){
-		info.month = 12;
-		info.year--;
-	}
-	
-	info.minute = 0;
-	info.second = 0;
-	info.hour = 0;
-	return [NSDate dateFromDateInformation:info timeZone:[NSTimeZone timeZoneForSecondsFromGMT:0]];
-	
-}
-
-- (NSDate*) lastOfMonthDate {
-	NSCalendar *gregorian = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
-	NSDateComponents *comp = [gregorian components:(NSYearCalendarUnit | NSMonthCalendarUnit) fromDate:self];
-	[comp setDay:0];
-	[comp setMonth:comp.month+1];
-	NSDate *date = [gregorian dateFromComponents:comp];
-    return date;
-}
-
-@end
-
 
 #pragma mark - TKCalendarMonthTiles
 @interface TKCalendarMonthTiles : UIView {}
@@ -157,6 +65,8 @@
 - (id) initWithMonth:(NSDate*)date marks:(NSArray*)marks startDayOnSunday:(BOOL)sunday;
 
 - (id) initWithMonth:(NSDate*)date marks:(NSArray*)marks startDayOnSunday:(BOOL)sunday monthView:(TKCalendarMonthView*)monthView;
+
+- (void)refreshMarks;
 
 @end
 
@@ -319,6 +229,11 @@
 	tiles.monthView = view;
 	
 	return self;
+}
+
+- (void)refreshMarks {
+	marks = [monthView.dataSource calendarMonthView:monthView marksFromDate:[dates objectAtIndex:0] toDate:[dates lastObject]];
+	[self setNeedsDisplay];
 }
 
 
@@ -1073,7 +988,7 @@
 }
 
 - (void)setNeedsDisplayOnCurrentMonth; {
-	[currentTile setNeedsDisplay];
+	[currentTile refreshMarks];
 }
 
 #pragma mark Properties
