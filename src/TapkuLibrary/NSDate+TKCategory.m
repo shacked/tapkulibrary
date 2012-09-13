@@ -190,6 +190,22 @@ static NSString *systemMonthDateFormatterSyncToken = @"systemMonthDateFormatterS
 	return [todayString isEqualToString:selfDayString];
 }
 
+- (BOOL) isFutureDate {
+	NSString *todayString = nil;
+	@synchronized(systemDayDateFormatterSyncToken) {
+		NSDateFormatter *systemDayDateFormatter = [NSDate systemDayDateFormatter];
+		todayString = [systemDayDateFormatter stringFromDate:[NSDate date]];
+	}
+	
+	NSString *selfDayString = nil;
+	@synchronized(utcDayDateFormatterSyncToken) {
+		NSDateFormatter *utcDayDateFormatter = [NSDate utcDayDateFormatter];
+		selfDayString = [utcDayDateFormatter stringFromDate:self];
+	}
+	
+	return ([todayString compare:selfDayString] == NSOrderedAscending);
+}
+
 - (BOOL) isSameDay:(NSDate*)anotherDate{
 	NSString *anotherDayString = nil;
 	NSString *selfDayString = nil;

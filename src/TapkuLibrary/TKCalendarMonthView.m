@@ -416,30 +416,36 @@
 			  alignment: UITextAlignmentCenter];
 		
 		/* Draw the mark or count */
-		NSNumber *mark = [NSNumber numberWithInteger:0];
-		if ([marks count] > 0) {
-			mark = [marks objectAtIndex:index];
-		}
+		NSNumber *mark = [marks objectAtIndex:index];
+
+		if (self.monthView.showCounts) {
+			NSString *markString = nil;
+			
+			if ([mark integerValue] > 0) {
+				markString = [mark stringValue];
+			}
+			else if ([mark integerValue] == MARK_UNKNOWN) {
+				markString = @"?";
+			}
 		
-		if ([mark integerValue] > 0) {
-			if ([mark integerValue] > 1 || self.monthView.showCounts) {
+			if (markString != nil) {
 				shadowRect.size.height = 10.0f;
 				shadowRect.origin.y += 22.0f;
 				
-				[[mark stringValue] drawInRect: shadowRect
-									  withFont: self.countFont
-								 lineBreakMode: UILineBreakModeWordWrap 
-									 alignment: UITextAlignmentCenter];
+				[markString drawInRect: shadowRect
+							  withFont: self.countFont
+						 lineBreakMode: UILineBreakModeWordWrap
+							 alignment: UITextAlignmentCenter];
 			}
-			else if ([mark integerValue] == 1) {
-				shadowRect.size.height = 10.0f;
-				shadowRect.origin.y += 18.0f + shadowOffset/4.0f;
-				
-				[@"•" drawInRect: shadowRect
-						withFont: self.dotFont
-				   lineBreakMode: UILineBreakModeWordWrap 
-					   alignment: UITextAlignmentCenter];
-			}
+		}
+		else if ([mark integerValue] == 1) {
+			shadowRect.size.height = 10.0f;
+			shadowRect.origin.y += 18.0f + shadowOffset/4.0f;
+			
+			[@"•" drawInRect: shadowRect
+					withFont: self.dotFont
+			   lineBreakMode: UILineBreakModeWordWrap
+				   alignment: UITextAlignmentCenter];
 		}
 	}
 	
@@ -456,32 +462,39 @@
 			  alignment: UITextAlignmentCenter];
 		
 		/* Draw the mark or count */
-		NSNumber *mark = [NSNumber numberWithInteger:0];
-		if ([marks count] > 0) {
-			mark = [marks objectAtIndex:index];
-		}
+		NSNumber *mark = [marks objectAtIndex:index];
 		
-		if ([mark integerValue] > 0) {
-			if ([mark integerValue] > 1 || self.monthView.showCounts) {
+		if (self.monthView.showCounts) {
+			NSString *markString = nil;
+			
+			if ([mark integerValue] > 0) {
+				markString = [mark stringValue];
+			}
+			else if ([mark integerValue] == MARK_UNKNOWN) {
+				markString = @"?";
+			}
+			
+			if (markString != nil) {
 				rect.size.height = 10;
 				rect.origin.y += 22;
 				
 				[countColor set];
-				[[mark stringValue] drawInRect: rect
-								   withFont: self.countFont
-							  lineBreakMode: UILineBreakModeWordWrap 
-								  alignment: UITextAlignmentCenter];
-			}
-			else if ([mark integerValue] == 1) {
-				rect.size.height = 10;
-				rect.origin.y += 18;
 				
-				[@"•" drawInRect: rect
-						withFont: self.dotFont
-				   lineBreakMode: UILineBreakModeWordWrap 
-					   alignment: UITextAlignmentCenter];
+				[markString drawInRect: rect
+							  withFont: self.countFont
+						 lineBreakMode: UILineBreakModeWordWrap
+							 alignment: UITextAlignmentCenter];
 			}
 		}
+		else if ([mark integerValue] == 1) {
+			rect.size.height = 10;
+			rect.origin.y += 18;
+			
+			[@"•" drawInRect: rect
+					withFont: self.dotFont
+			   lineBreakMode: UILineBreakModeWordWrap
+				   alignment: UITextAlignmentCenter];
+		}		
 	}
 }
 

@@ -72,6 +72,7 @@ typedef struct TKDateInformation TKDateInformation;
 - (NSDate*) timelessDateGMT;
 
 - (BOOL) isToday;
+- (BOOL) isFutureDate;
 - (BOOL) isSameDay:(NSDate*)anotherDate;
 - (BOOL) isSameMonth:(NSDate*)anotherDate;
 - (BOOL) isBetweenFromDate:(NSDate*)fromDate toDate:(NSDate*)toDate;
