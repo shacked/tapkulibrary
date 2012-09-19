@@ -416,36 +416,38 @@
 			  alignment: UITextAlignmentCenter];
 		
 		/* Draw the mark or count */
-		NSNumber *mark = [marks objectAtIndex:index];
+		if (index < [marks count]) {
+			NSNumber *mark = [marks objectAtIndex:index];
 
-		if (self.monthView.showCounts) {
-			NSString *markString = nil;
-			
-			if ([mark integerValue] > 0) {
-				markString = [mark stringValue];
-			}
-			else if ([mark integerValue] == MARK_UNKNOWN) {
-				markString = @"?";
-			}
-		
-			if (markString != nil) {
-				shadowRect.size.height = 10.0f;
-				shadowRect.origin.y += 22.0f;
+			if (self.monthView.showCounts) {
+				NSString *markString = nil;
 				
-				[markString drawInRect: shadowRect
-							  withFont: self.countFont
-						 lineBreakMode: UILineBreakModeWordWrap
-							 alignment: UITextAlignmentCenter];
-			}
-		}
-		else if ([mark integerValue] == 1) {
-			shadowRect.size.height = 10.0f;
-			shadowRect.origin.y += 18.0f + shadowOffset/4.0f;
+				if ([mark integerValue] > 0) {
+					markString = [mark stringValue];
+				}
+				else if ([mark integerValue] == MARK_UNKNOWN) {
+					markString = @"?";
+				}
 			
-			[@"•" drawInRect: shadowRect
-					withFont: self.dotFont
-			   lineBreakMode: UILineBreakModeWordWrap
-				   alignment: UITextAlignmentCenter];
+				if (markString != nil) {
+					shadowRect.size.height = 10.0f;
+					shadowRect.origin.y += 22.0f;
+					
+					[markString drawInRect: shadowRect
+								  withFont: self.countFont
+							 lineBreakMode: UILineBreakModeWordWrap
+								 alignment: UITextAlignmentCenter];
+				}
+			}
+			else if ([mark integerValue] == 1) {
+				shadowRect.size.height = 10.0f;
+				shadowRect.origin.y += 18.0f + shadowOffset/4.0f;
+				
+				[@"•" drawInRect: shadowRect
+						withFont: self.dotFont
+				   lineBreakMode: UILineBreakModeWordWrap
+					   alignment: UITextAlignmentCenter];
+			}
 		}
 	}
 	
@@ -462,39 +464,41 @@
 			  alignment: UITextAlignmentCenter];
 		
 		/* Draw the mark or count */
-		NSNumber *mark = [marks objectAtIndex:index];
+		if (index < [marks count]) {
+			NSNumber *mark = [marks objectAtIndex:index];
 		
-		if (self.monthView.showCounts) {
-			NSString *markString = nil;
-			
-			if ([mark integerValue] > 0) {
-				markString = [mark stringValue];
+			if (self.monthView.showCounts) {
+				NSString *markString = nil;
+				
+				if ([mark integerValue] > 0) {
+					markString = [mark stringValue];
+				}
+				else if ([mark integerValue] == MARK_UNKNOWN) {
+					markString = @"?";
+				}
+				
+				if (markString != nil) {
+					rect.size.height = 10;
+					rect.origin.y += 22;
+					
+					[countColor set];
+					
+					[markString drawInRect: rect
+								  withFont: self.countFont
+							 lineBreakMode: UILineBreakModeWordWrap
+								 alignment: UITextAlignmentCenter];
+				}
 			}
-			else if ([mark integerValue] == MARK_UNKNOWN) {
-				markString = @"?";
-			}
-			
-			if (markString != nil) {
+			else if ([mark integerValue] == 1) {
 				rect.size.height = 10;
-				rect.origin.y += 22;
+				rect.origin.y += 18;
 				
-				[countColor set];
-				
-				[markString drawInRect: rect
-							  withFont: self.countFont
-						 lineBreakMode: UILineBreakModeWordWrap
-							 alignment: UITextAlignmentCenter];
+				[@"•" drawInRect: rect
+						withFont: self.dotFont
+				   lineBreakMode: UILineBreakModeWordWrap
+					   alignment: UITextAlignmentCenter];
 			}
 		}
-		else if ([mark integerValue] == 1) {
-			rect.size.height = 10;
-			rect.origin.y += 18;
-			
-			[@"•" drawInRect: rect
-					withFont: self.dotFont
-			   lineBreakMode: UILineBreakModeWordWrap
-				   alignment: UITextAlignmentCenter];
-		}		
 	}
 }
 
@@ -582,10 +586,6 @@
 
 @implementation TKCalendarMonthView {
 	TKCalendarMonthTiles *currentTile,*oldTile;
-	UIButton *leftArrow, *rightArrow;
-	UIImageView *topBackground, *shadow;
-	UILabel *monthYear;
-	UIScrollView *tileBox;
 	BOOL sunday;
 	NSInteger endpoint; // -1 = left, 0 = none, 1 = right
 }
@@ -765,7 +765,7 @@
 	oldTile = currentTile;
 	currentTile = newTile;
 
-	monthYear.text = [NSString stringWithFormat:@"%@ %@",[localNextMonth monthString:YES],[localNextMonth yearString:YES]];
+	_monthYear.text = [NSString stringWithFormat:@"%@ %@",[localNextMonth monthString:YES],[localNextMonth yearString:YES]];
 }
 
 - (void) changeMonth:(UIButton *)sender{
@@ -1006,58 +1006,58 @@
 
 #pragma mark Properties
 - (UIImageView *) topBackground{
-	if(topBackground==nil){
-		topBackground = [[UIImageView alloc] initWithImage:[UIImage imageWithContentsOfFile:TKBUNDLE(@"TapkuLibrary.bundle/Images/calendar/Month Grid Top Bar.png")]];
+	if(_topBackground==nil){
+		_topBackground = [[UIImageView alloc] initWithImage:[UIImage imageWithContentsOfFile:TKBUNDLE(@"TapkuLibrary.bundle/Images/calendar/Month Grid Top Bar.png")]];
 	}
-	return topBackground;
+	return _topBackground;
 }
 
 - (UILabel *) monthYear{
-	if(monthYear==nil){
-		monthYear = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.tileBox.frame.size.width, 38)];
+	if(_monthYear==nil){
+		_monthYear = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.tileBox.frame.size.width, 38)];
 		
-		monthYear.textAlignment = UITextAlignmentCenter;
-		monthYear.backgroundColor = [UIColor clearColor];
-		monthYear.font = [UIFont boldSystemFontOfSize:22];
-		monthYear.textColor = [UIColor colorWithRed:59/255. green:73/255. blue:88/255. alpha:1];
+		_monthYear.textAlignment = UITextAlignmentCenter;
+		_monthYear.backgroundColor = [UIColor clearColor];
+		_monthYear.font = [UIFont boldSystemFontOfSize:22];
+		_monthYear.textColor = [UIColor colorWithRed:59/255. green:73/255. blue:88/255. alpha:1];
 	}
-	return monthYear;
+	return _monthYear;
 }
 
 - (UIButton *) leftArrow{
-	if(leftArrow==nil){
-		leftArrow = [UIButton buttonWithType:UIButtonTypeCustom];
-		leftArrow.tag = 0;
-		[leftArrow addTarget:self action:@selector(changeMonth:) forControlEvents:UIControlEventTouchUpInside];
-		[leftArrow setImage:[UIImage imageNamedTK:@"TapkuLibrary.bundle/Images/calendar/Month Calendar Left Arrow"] forState:0];
-		leftArrow.frame = CGRectMake(0, 0, 48, 38);
+	if(_leftArrow==nil){
+		_leftArrow = [UIButton buttonWithType:UIButtonTypeCustom];
+		_leftArrow.tag = 0;
+		[_leftArrow addTarget:self action:@selector(changeMonth:) forControlEvents:UIControlEventTouchUpInside];
+		[_leftArrow setImage:[UIImage imageNamedTK:@"TapkuLibrary.bundle/Images/calendar/Month Calendar Left Arrow"] forState:0];
+		_leftArrow.frame = CGRectMake(0, 0, 48, 38);
 	}
-	return leftArrow;
+	return _leftArrow;
 }
 
 - (UIButton *) rightArrow{
-	if(rightArrow==nil){
-		rightArrow = [UIButton buttonWithType:UIButtonTypeCustom];
-		rightArrow.tag = 1;
-		[rightArrow addTarget:self action:@selector(changeMonth:) forControlEvents:UIControlEventTouchUpInside];
-		rightArrow.frame = CGRectMake(320-45, 0, 48, 38);
-		[rightArrow setImage:[UIImage imageNamedTK:@"TapkuLibrary.bundle/Images/calendar/Month Calendar Right Arrow"] forState:0];
+	if(_rightArrow==nil){
+		_rightArrow = [UIButton buttonWithType:UIButtonTypeCustom];
+		_rightArrow.tag = 1;
+		[_rightArrow addTarget:self action:@selector(changeMonth:) forControlEvents:UIControlEventTouchUpInside];
+		_rightArrow.frame = CGRectMake(320-45, 0, 48, 38);
+		[_rightArrow setImage:[UIImage imageNamedTK:@"TapkuLibrary.bundle/Images/calendar/Month Calendar Right Arrow"] forState:0];
 	}
-	return rightArrow;
+	return _rightArrow;
 }
 
 - (UIScrollView *) tileBox{
-	if(tileBox==nil){
-		tileBox = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 44, 320, currentTile.frame.size.height)];
+	if(_tileBox==nil){
+		_tileBox = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 44, 320, currentTile.frame.size.height)];
 	}
-	return tileBox;
+	return _tileBox;
 }
 
 - (UIImageView *) shadow{
-	if(shadow==nil){
-		shadow = [[UIImageView alloc] initWithImage:[UIImage imageWithContentsOfFile:TKBUNDLE(@"TapkuLibrary.bundle/Images/calendar/Month Calendar Shadow.png")]];
+	if(_shadow==nil){
+		_shadow = [[UIImageView alloc] initWithImage:[UIImage imageWithContentsOfFile:TKBUNDLE(@"TapkuLibrary.bundle/Images/calendar/Month Calendar Shadow.png")]];
 	}
-	return shadow;
+	return _shadow;
 }
 
 @end
